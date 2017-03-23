@@ -58,7 +58,7 @@ class ArrayField extends Component {
     super(props);
     const formData = this.getStateFromProps(props);
     let anyOfItems = [];
-    if (this.getAnyOfItemsSchema()) {
+    if (this.getAnyOfItemsSchema(props.schema, props.registry.definitions)) {
       // We need to contruct the initial anyOfItems state, by searching for the props anyOf items
       // in the available anyOf schema items
       anyOfItems = this.getAnyOfItemsFromProps(formData.items, props.schema.items.anyOf);
@@ -121,9 +121,12 @@ class ArrayField extends Component {
     });
   }
 
-  getAnyOfItemsSchema() {
-    const {schema} = this.props;
-    return schema.items.anyOf;
+  getAnyOfItemsSchema(schema, definitions) {
+    let anyOf = schema.items.anyOf;
+    if (!anyOf) {
+      return anyOf;
+    }
+    return anyOf.map((anyOfSchema) => retrieveSchema(anyOfSchema, definitions));
   }
 
   onAddClick = (event) => {
@@ -132,7 +135,7 @@ class ArrayField extends Component {
     const {schema, registry} = this.props;
     const {definitions} = registry;
     let itemSchema = schema.items;
-    const anyOfItems = this.getAnyOfItemsSchema();
+    const anyOfItems = this.getAnyOfItemsSchema(schema, definitions);
     if (isFixedItems(schema) && allowAdditionalItems(schema)) {
       itemSchema = schema.additionalItems;
     }
@@ -222,9 +225,9 @@ class ArrayField extends Component {
 
   setWidgetType(index, value) {
     const {items} = this.state.formData;
-    const {registry} = this.props;
+    const {schema, registry} = this.props;
     const {definitions} = registry;
-    const anyOfItemsSchema = this.getAnyOfItemsSchema();
+    const anyOfItemsSchema = this.getAnyOfItemsSchema(schema, definitions);
     const newItems = items.slice();
     const foundItem = anyOfItemsSchema.find((element) => element.type === value);
     newItems[index] = getDefaultFormState(foundItem, undefined, definitions);
@@ -270,7 +273,7 @@ class ArrayField extends Component {
     const {TitleField, DescriptionField} = fields;
     let itemsSchema = retrieveSchema(schema.items, definitions);
     const {addable=true} = getUiOptions(uiSchema);
-    const anyOfItemsSchema = this.getAnyOfItemsSchema();
+    const anyOfItemsSchema = this.getAnyOfItemsSchema(schema, definitions);
 
     return (
       <fieldset
