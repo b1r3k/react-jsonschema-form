@@ -220,7 +220,7 @@ class ArrayField extends Component {
   };
 
   anyOfOptions(anyOfItems) {
-    return anyOfItems.map(item => ({value: item.type, label: item.type}));
+    return anyOfItems.map(item => ({value: item.title, label: item.title}));
   }
 
   setWidgetType(index, value) {
@@ -229,7 +229,7 @@ class ArrayField extends Component {
     const {definitions} = registry;
     const anyOfItemsSchema = this.getAnyOfItemsSchema(schema, definitions);
     const newItems = items.slice();
-    const foundItem = anyOfItemsSchema.find((element) => element.type === value);
+    const foundItem = anyOfItemsSchema.find((element) => element.title === value);
     newItems[index] = getDefaultFormState(foundItem, undefined, definitions);
 
     const newAnyOfItems = [...this.state.anyOfItems];
@@ -307,7 +307,7 @@ class ArrayField extends Component {
               itemUiSchema: uiSchema.items,
               autofocus: autofocus && index === 0,
               anyOfItemsSchema: anyOfItemsSchema,
-              selectWidgetValue: anyOfItems.length > 0 ? anyOfItems[index].type : ""
+              selectWidgetValue: anyOfItems.length > 0 ? anyOfItems[index].title : ""
             });
           })
         }</div>
