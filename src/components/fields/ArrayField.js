@@ -87,11 +87,10 @@ class ArrayField extends Component {
     return formDataItems.map((item) => {
       const type = typeof item;
       const itemType = (type === "object" && Array.isArray(item)) ? "array" : type;
-      console.log(type, itemType);
-      const schema = this.getAnyOfItemSchema(anyOfSchema, itemType);
+      const schema = this.getAnyOfItemSchema(anyOfSchema, item);
 
       // If this schema is an array, we need to recursively add its contents
-      if (schema.type === "array") {
+      if (itemType === "array") {
         this.getAnyOfItemsFromProps(item, schema.items.anyOf);
       }
 
@@ -99,10 +98,22 @@ class ArrayField extends Component {
     });
   }
 
-  getAnyOfItemSchema(anyOfSchema, type) {
+  getAnyOfItemSchema(anyOfSchema, item) {
     return anyOfSchema.find((schemaElement) => {
       const schemaElementType = schemaElement.type === "integer" ? "number" : schemaElement.type;
-      return schemaElementType === type;
+      if (schemaElementType === "object" && schemaElement.hasOwnProperty("properties")) {
+        let itemKeys = Object.keys(item);
+
+        return itemKeys.every((itemPropertyName) => {
+          if (!schemaElement.properties.hasOwnProperty(itemPropertyName)) {
+            return false;
+          }
+          let schemaPropType = schemaElement.properties[itemPropertyName].type;
+          let itemPropType = typeof item[itemPropertyName];
+          return schemaPropType === itemPropType;
+        });
+      }
+      return schemaElementType === item.type;
     });
   }
 
