@@ -67,7 +67,11 @@ class ArrayField extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const newState = Object.assign({}, this.state, {formData: this.getStateFromProps(nextProps)});
+    let nextFormData = this.getStateFromProps(nextProps);
+    const newState = Object.assign({}, this.state, {
+      formData: nextFormData,
+      anyOfItems: this.getAnyOfItemsFromProps(nextFormData.items, nextProps.schema.items.anyOf)
+    });
     this.setState(newState);
   }
 
