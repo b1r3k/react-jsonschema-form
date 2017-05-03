@@ -58,19 +58,21 @@ class ArrayField extends Component {
     super(props);
     const formData = this.getStateFromProps(props);
     let anyOfItems = [];
-    if (this.getAnyOfItemsSchema(props.schema, props.registry.definitions)) {
+    let anyOfItemsSchema = this.getAnyOfItemsSchema(props.schema, props.registry.definitions);
+    if (anyOfItemsSchema) {
       // We need to contruct the initial anyOfItems state, by searching for the props anyOf items
       // in the available anyOf schema items
-      anyOfItems = this.getAnyOfItemsFromProps(formData.items, props.schema.items.anyOf);
+      anyOfItems = this.getAnyOfItemsFromProps(formData.items, anyOfItemsSchema);
     }
     this.state = {formData: formData, anyOfItems: anyOfItems};
   }
 
   componentWillReceiveProps(nextProps) {
     let nextFormData = this.getStateFromProps(nextProps);
+    let anyOfItemsSchema = this.getAnyOfItemsSchema(nextProps.schema, nextProps.registry.definitions);
     const newState = Object.assign({}, this.state, {
       formData: nextFormData,
-      anyOfItems: this.getAnyOfItemsFromProps(nextFormData.items, nextProps.schema.items.anyOf)
+      anyOfItems: this.getAnyOfItemsFromProps(nextFormData.items, anyOfItemsSchema)
     });
     this.setState(newState);
   }
@@ -114,6 +116,7 @@ class ArrayField extends Component {
           }
           let schemaPropType = schemaElement.properties[itemPropertyName].type;
           let itemPropType = typeof item[itemPropertyName];
+          itemPropType = Array.isArray(item[itemPropertyName]) ? "array" : itemPropType;
           return schemaPropType === itemPropType;
         });
       }
@@ -289,7 +292,6 @@ class ArrayField extends Component {
     let itemsSchema = retrieveSchema(schema.items, definitions);
     const {addable=true} = getUiOptions(uiSchema);
     const anyOfItemsSchema = this.getAnyOfItemsSchema(schema, definitions);
-
     return (
       <fieldset
         className={`field field-array field-array-of-${itemsSchema.type}`}>
@@ -306,7 +308,7 @@ class ArrayField extends Component {
         <div className="row array-item-list">{
           items.map((item, index) => {
             if (anyOfItemsSchema) {
-              itemsSchema = anyOfItems[index];
+              itemsSchema = this.getAnyOfItemSchema(anyOfItems, item);
             }
             const itemErrorSchema = errorSchema ? errorSchema[index] : undefined;
             const itemIdPrefix = idSchema.$id + "_" + index;
@@ -322,7 +324,7 @@ class ArrayField extends Component {
               itemUiSchema: uiSchema.items,
               autofocus: autofocus && index === 0,
               anyOfItemsSchema: anyOfItemsSchema,
-              selectWidgetValue: anyOfItems.length > 0 ? anyOfItems[index].title : ""
+              selectWidgetValue: itemsSchema.title
             });
           })
         }</div>
