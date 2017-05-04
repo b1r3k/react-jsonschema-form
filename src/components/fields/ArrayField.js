@@ -62,7 +62,7 @@ class ArrayField extends Component {
     if (anyOfItemsSchema) {
       // We need to contruct the initial anyOfItems state, by searching for the props anyOf items
       // in the available anyOf schema items
-      anyOfItems = this.getAnyOfItemsFromProps(formData.items, anyOfItemsSchema);
+      anyOfItems = this.getAnyOfItemsFromProps(formData.items, anyOfItemsSchema, props.registry.definitions);
     }
     this.state = {formData: formData, anyOfItems: anyOfItems};
   }
@@ -72,7 +72,7 @@ class ArrayField extends Component {
     let anyOfItemsSchema = this.getAnyOfItemsSchema(nextProps.schema, nextProps.registry.definitions);
     const newState = Object.assign({}, this.state, {
       formData: nextFormData,
-      anyOfItems: this.getAnyOfItemsFromProps(nextFormData.items, anyOfItemsSchema)
+      anyOfItems: this.getAnyOfItemsFromProps(nextFormData.items, anyOfItemsSchema, nextProps.registry.definitions)
     });
     this.setState(newState);
   }
@@ -89,22 +89,22 @@ class ArrayField extends Component {
     return shouldRender(this, nextProps, nextState);
   }
 
-  getAnyOfItemsFromProps(formDataItems, anyOfSchema) {
+  getAnyOfItemsFromProps(formDataItems, anyOfSchema, definitions) {
     return formDataItems.map((item) => {
       const type = typeof item;
       const itemType = (type === "object" && Array.isArray(item)) ? "array" : type;
-      const schema = this.getAnyOfItemSchema(anyOfSchema, item);
+      const schema = this.getAnyOfItemSchema(anyOfSchema, item, definitions);
 
       // If this schema is an array, we need to recursively add its contents
       if (itemType === "array") {
-        this.getAnyOfItemsFromProps(item, schema.items.anyOf);
+        this.getAnyOfItemsFromProps(item, schema.items.anyOf, definitions);
       }
 
       return schema;
     });
   }
 
-  getAnyOfItemSchema(anyOfSchema, item) {
+  getAnyOfItemSchema(anyOfSchema, item, definitions={}) {
     return anyOfSchema.find((schemaElement) => {
       const schemaElementType = schemaElement.type === "integer" ? "number" : schemaElement.type;
       if (schemaElementType === "object" && schemaElement.hasOwnProperty("properties")) {
@@ -113,6 +113,9 @@ class ArrayField extends Component {
         return itemKeys.every((itemPropertyName) => {
           if (!schemaElement.properties.hasOwnProperty(itemPropertyName)) {
             return false;
+          }
+          if (schemaElement.properties[itemPropertyName].hasOwnProperty("$ref")) {
+            schemaElement.properties[itemPropertyName] = retrieveSchema(schemaElement.properties[itemPropertyName], definitions);
           }
           let schemaPropType = schemaElement.properties[itemPropertyName].type;
           let itemPropType = typeof item[itemPropertyName];
@@ -308,7 +311,7 @@ class ArrayField extends Component {
         <div className="row array-item-list">{
           items.map((item, index) => {
             if (anyOfItemsSchema) {
-              itemsSchema = this.getAnyOfItemSchema(anyOfItems, item);
+              itemsSchema = this.getAnyOfItemSchema(anyOfItems, item, definitions);
             }
             const itemErrorSchema = errorSchema ? errorSchema[index] : undefined;
             const itemIdPrefix = idSchema.$id + "_" + index;
