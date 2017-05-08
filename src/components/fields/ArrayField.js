@@ -107,7 +107,13 @@ class ArrayField extends Component {
   getAnyOfItemSchema(anyOfSchema=[], item, definitions={}) {
     return anyOfSchema.find((schemaElement) => {
       const schemaElementType = schemaElement.type === "integer" ? "number" : schemaElement.type;
+      // compare schema and item by its' properties and their types
       if (schemaElementType === "object" && schemaElement.hasOwnProperty("properties")) {
+        // sometimes comparison of properties/types is not conclusive thats why we set schema id
+        if (item.hasOwnProperty("schemaId") && schemaElement.properties.hasOwnProperty("schemaId")) {
+          let schemaId = schemaElement.properties.schemaId["default"];
+          return item.schemaId === schemaId;
+        }
         let itemKeys = Object.keys(item);
 
         return itemKeys.every((itemPropertyName) => {
