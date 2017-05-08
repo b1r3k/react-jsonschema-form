@@ -104,7 +104,7 @@ class ArrayField extends Component {
     });
   }
 
-  getAnyOfItemSchema(anyOfSchema, item, definitions={}) {
+  getAnyOfItemSchema(anyOfSchema=[], item, definitions={}) {
     return anyOfSchema.find((schemaElement) => {
       const schemaElementType = schemaElement.type === "integer" ? "number" : schemaElement.type;
       if (schemaElementType === "object" && schemaElement.hasOwnProperty("properties")) {
