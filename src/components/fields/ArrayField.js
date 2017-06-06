@@ -502,7 +502,9 @@ class ArrayField extends Component {
                 id="test"
                 options={{enumOptions: this.anyOfOptions(anyOfItemsSchema)}}
                 value={selectWidgetValue}
-                onChange={(value) => this.setWidgetType(index, value)}/>
+                onChange={(value) => this.setWidgetType(index, value)}
+                disabled={this.props.readonly}
+              />
             </div>
           ) : null}
           <SchemaField
