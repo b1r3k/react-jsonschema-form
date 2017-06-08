@@ -6,7 +6,12 @@ function NumberField(props) {
   const {StringField} = props.registry.fields;
   return (
     <StringField {...props}
-      onChange={(value) => props.onChange(asNumber(value))}/>
+      onChange={(value) => {
+        let inputAsNumber = asNumber(value);
+        if (Number.isInteger(inputAsNumber)) {
+          props.onChange(inputAsNumber);
+        }
+      }}/>
   );
 }
 
